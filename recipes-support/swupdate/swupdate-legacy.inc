@@ -17,14 +17,13 @@ SRC_URI = "git://github.com/sbabic/swupdate.git;protocol=https \
      "
 
 INSANE_SKIP_${PN} = "ldflags"
-PACKAGES =+ "${PN}-www ${PN}-lua"
+PACKAGES =+ "${PN}-www"
 
-FILES_${PN}-lua += "${libdir}/lua/"
 FILES_${PN}-www = "/www/*"
 
 S = "${WORKDIR}/git/"
 
-EXTRA_OEMAKE += " HOSTCC="${BUILD_CC}" HOSTCXX="${BUILD_CXX}" LD="${CC}" DESTDIR="${D}" V=1 ARCH=${TARGET_ARCH} CROSS_COMPILE=${TARGET_PREFIX} SKIP_STRIP=y"
+EXTRA_OEMAKE += " HOSTCC="${BUILD_CC}" HOSTCXX="${BUILD_CXX}" V=1 ARCH=${TARGET_ARCH} CROSS_COMPILE=${TARGET_PREFIX} SKIP_STRIP=y"
 
 DEPENDS += "kern-tools-native"
 
@@ -113,8 +112,8 @@ do_compile() {
 }
 
 do_install () {
-
-  oe_runmake install
+  install -d ${D}${bindir}/
+  install -m 0755 swupdate ${D}${bindir}/
 
   install -m 0755 -d ${D}/www
   if [ -d ${S}/web-app ];then
@@ -122,6 +121,13 @@ do_install () {
   else
 	install -m 0755 ${S}/www/* ${D}/www
   fi
+
+  install -d ${D}${libdir}/
+  install -d ${D}${includedir}/
+  install -m 0644 ${S}/include/network_ipc.h ${D}${includedir}
+  install -m 0644 ${S}/include/swupdate_status.h ${D}${includedir}
+  install -m 0644 ${S}/include/progress_ipc.h ${D}${includedir}
+  install -m 0755 ${S}/ipc/lib.a ${D}${libdir}/libswupdate.a
 
   install -d ${D}${sysconfdir}/init.d
   install -m 755 ${WORKDIR}/swupdate ${D}${sysconfdir}/init.d
